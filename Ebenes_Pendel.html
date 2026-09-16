@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ebenes Pendel — Lagrange 2. Art, interaktive Simulation</title>
+<style>
+  :root{
+    --navy:#040C77; --navy-2:#2A3390; --navy-pale:#E7E9F6;
+    --ink:#161A22; --muted-txt:#5F6270;
+    --paper:#FAF7F0; --card:#FFFFFF; --band:#F3EFE4; --rule:#DCD4C2;
+    --amber:#B87A00; --amber-soft:#FFD966;
+    --mag:#8900B5; --grey:#9A958A;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);
+       font-family:"Segoe UI",Calibri,Carlito,system-ui,Arial,sans-serif;font-size:15px;line-height:1.5}
+
+  /* ---------------- masthead ---------------- */
+  .masthead{background:var(--navy);color:#fff;padding:14px 30px;
+            display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+  .who .name{font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;
+             font-size:20px;letter-spacing:.2px}
+  .who .role{font-size:12.5px;color:#B9BEE4;margin-top:2px;letter-spacing:.3px;text-transform:uppercase}
+  .logos{display:flex;align-items:center;gap:18px}
+  .logo img{height:38px;display:block;filter:brightness(0) invert(1)}
+  .wordmark{display:none;flex-direction:column;line-height:1.05;
+            font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif}
+  .wordmark b{font-size:19px;letter-spacing:1.5px}
+  .wordmark small{font-size:9.5px;letter-spacing:.9px;color:#B9BEE4;text-transform:uppercase;margin-top:2px}
+  .wm-sep{width:1px;height:34px;background:#3A44A0}
+
+  /* ---------------- title band ---------------- */
+  .titleband{padding:20px 30px 6px}
+  h1{font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;
+     font-size:27px;font-weight:600;margin:0;color:var(--navy)}
+  .sub{color:var(--muted-txt);font-size:14px;margin-top:5px}
+  .sub b{color:var(--ink)}
+
+  /* ---------------- system band (figure) ---------------- */
+  .systemband{display:flex;gap:30px;align-items:flex-start;flex-wrap:wrap;padding:14px 30px 4px}
+  .figwrap{flex:0 1 470px;min-width:320px}
+  .figwrap svg{width:100%;height:auto;display:block}
+  .figcap{font-size:11.5px;color:var(--muted-txt);margin-top:4px;font-style:italic}
+  .sysnote{flex:1 1 320px;min-width:280px;padding-top:4px}
+  .sysnote h2{font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;
+              font-size:17px;margin:0 0 8px;color:var(--navy);font-weight:600}
+  .sysnote p{margin:0 0 9px;font-size:13px;line-height:1.55}
+  .deflist{border-top:1px solid var(--rule);margin-top:4px}
+  .deflist div{display:flex;gap:12px;padding:5px 0;border-bottom:1px solid var(--rule);font-size:12.5px}
+  .deflist dt{flex:0 0 104px;font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;
+              font-size:14px;color:var(--navy);margin:0}
+  .deflist dd{margin:0;color:var(--ink)}
+
+  /* ---------------- axis controls ---------------- */
+  .axisbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:10px;
+           padding:9px 13px;background:var(--band);border:1px solid var(--rule);font-size:12.5px}
+  .axisbar .axlabel{font-weight:700;color:var(--navy);letter-spacing:.4px;text-transform:uppercase;
+                    font-size:11.5px}
+  .axisbar .seg{display:flex;align-items:center;gap:5px;cursor:pointer}
+  .axisbar .seg input{accent-color:var(--navy);cursor:pointer}
+  .axfield{display:flex;align-items:center;gap:5px;color:var(--muted-txt)}
+  .axfield input{width:62px;padding:3px 5px;font-family:inherit;font-size:12.5px;
+                 border:1px solid var(--rule);background:#fff;color:var(--ink)}
+  .axfield input:disabled{background:#EFEBE0;color:#9A958A}
+  .axgrp{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+         padding-left:13px;border-left:1px solid var(--rule)}
+  .axkey{font-family:"Palatino Linotype",Georgia,serif;font-style:italic;
+         color:var(--navy);font-size:13.5px}
+  .axbtn{margin-left:auto;font-size:11.5px;padding:4px 11px;border-radius:2px;cursor:pointer;
+         border:1px solid var(--navy);background:transparent;color:var(--navy);font-family:inherit}
+  .axbtn:hover{background:var(--navy);color:#fff}
+
+  /* ---------------- derivation band ---------------- */
+  .bandhead{display:flex;align-items:baseline;gap:14px;padding:16px 30px 0}
+  .bandhead h2{font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;
+               font-size:17px;margin:0;color:var(--navy);font-weight:600}
+  .bandhead .kicker{font-size:12px;color:var(--muted-txt);letter-spacing:.4px}
+  .toggle-btn{margin-left:auto;font-size:12px;padding:4px 12px;border-radius:2px;cursor:pointer;
+              border:1px solid var(--navy);background:transparent;color:var(--navy);
+              font-family:inherit;letter-spacing:.3px}
+  .toggle-btn:hover{background:var(--navy);color:#fff}
+
+  .derivation{background:var(--band);border-top:1px solid var(--rule);
+              border-bottom:1px solid var(--rule);margin-top:10px;padding:16px 30px 18px}
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .step{background:var(--card);border:1px solid var(--rule);border-top:2.5px solid var(--navy);
+        padding:11px 13px 12px}
+  .step h3{margin:0 0 7px;font-size:12px;letter-spacing:.7px;text-transform:uppercase;
+           color:var(--navy-2);font-weight:700}
+  .step .eq{margin:5px 0}
+  .step .cmt{font-size:11.5px;color:var(--muted-txt);margin-top:7px;line-height:1.45}
+
+  .eq{font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;font-size:15.5px}
+  .eq i,.var{font-style:italic}
+  .frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 .16em}
+  .frac>span:first-child{border-bottom:1px solid currentColor;padding:0 .3em;font-size:.88em}
+  .frac>span:last-child{padding:0 .3em;font-size:.88em}
+
+  .results{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+  .result{background:var(--navy-pale);border:1px solid #C3C8EA;border-left:3px solid var(--navy);
+          padding:10px 14px}
+  .result .tag{font-size:11px;letter-spacing:.7px;text-transform:uppercase;color:var(--navy-2);
+               font-weight:700;margin-bottom:4px}
+  .result .eq{font-size:16.5px}
+  .keynote{margin-top:12px;font-size:12.5px;color:var(--muted-txt);border-left:2px solid var(--amber);
+           padding-left:11px;line-height:1.55}
+  .keynote b{color:var(--ink)}
+  .ptable{margin-top:7px;font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;
+          font-size:13px;color:var(--ink)}
+  .ptable span{display:inline-block;margin-right:14px;white-space:nowrap}
+
+  /* ---------------- lab ---------------- */
+  .lab{display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap;padding:20px 30px 26px}
+  .panel{width:282px;flex-shrink:0}
+  .panel h2{font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;
+            font-size:15px;margin:0 0 12px;color:var(--navy);
+            border-bottom:1px solid var(--rule);padding-bottom:6px;font-weight:600}
+  .ctrl{margin-bottom:13px}
+  .ctrl label{display:flex;justify-content:space-between;align-items:baseline;
+              font-size:12.5px;font-weight:600;margin-bottom:4px;letter-spacing:.2px}
+  .ctrl .val{color:var(--navy);font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;
+             font-size:14px;font-style:italic}
+  .ctrl .hint{font-size:11px;color:var(--muted-txt);font-weight:400;margin-top:2px;line-height:1.35}
+  input[type=range]{width:100%;accent-color:var(--navy);height:18px}
+  canvas{border:1px solid var(--rule);background:var(--card);max-width:100%;height:auto}
+  .switch{margin:14px 0 2px;padding:9px 11px;background:var(--band);border:1px solid var(--rule)}
+  .switch label{display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer;font-weight:600}
+  .switch input{width:15px;height:15px;accent-color:var(--amber);cursor:pointer}
+  .switch .hint{font-size:11px;color:var(--muted-txt);font-weight:400;margin-top:5px;line-height:1.35}
+  .status{margin-top:13px;padding:10px 12px;background:#FFFBF0;border:1px solid var(--amber-soft);
+          border-left:3px solid var(--amber);font-size:12.5px;line-height:1.55}
+  .status b{color:var(--amber)}
+  .status table{width:100%;border-collapse:collapse;margin-top:5px;font-size:12.5px}
+  .status td{padding:1px 0}
+  .status td:last-child{text-align:right;font-family:"Palatino Linotype",Georgia,serif;color:var(--navy)}
+  button.reset{width:100%;margin-top:14px;padding:8px;font-size:12.5px;font-weight:600;
+               font-family:inherit;letter-spacing:.3px;cursor:pointer;
+               border:1px solid var(--navy);background:var(--navy);color:#fff;border-radius:2px}
+  button.reset:hover{background:var(--navy-2)}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:9px;font-size:12px;color:var(--muted-txt)}
+  .legend > span{display:flex;align-items:center;gap:6px}
+  .swatch{width:16px;height:3px;display:inline-block}
+  .swatch.dash{background:repeating-linear-gradient(90deg,currentColor 0 5px,transparent 5px 9px)}
+
+  footer{padding:14px 30px 26px;font-size:11.5px;color:var(--muted-txt);
+         border-top:1px solid var(--rule);margin-top:4px}
+
+  @media (max-width:1100px){ .steps{grid-template-columns:repeat(2,1fr)} .results{grid-template-columns:1fr} }
+  @media (max-width:600px){ .steps{grid-template-columns:1fr}
+    .masthead,.titleband,.systemband,.derivation,.lab,footer{padding-left:16px;padding-right:16px} }
+</style>
+</head>
+<body>
+
+<!--
+  LOGOS: die beiden <img>-Tags unten erwarten die offiziellen Logodateien neben dieser
+  HTML-Datei, unter den Namen  fau-logo.png  und  kit-logo.png. Sind die Dateien nicht
+  vorhanden, zeigt die Seite automatisch eine schlichte Schriftmarke an.
+-->
+<header class="masthead">
+  <div class="who">
+    <div class="name">Dr. Miguel Ángel Moreno Mateos</div>
+    <div class="role">Lehrprobe · Karlsruher Institut für Technologie · 2. Oktober 2026</div>
+  </div>
+  <div class="logos">
+    <span class="logo">
+      <img src="fau-logo.png" alt="FAU Erlangen-Nürnberg" onerror="logoFallback(this)">
+      <span class="wordmark"><b>FAU</b><small>Erlangen-Nürnberg</small></span>
+    </span>
+    <span class="wm-sep"></span>
+    <span class="logo">
+      <img src="kit-logo.png" alt="Karlsruher Institut für Technologie" onerror="logoFallback(this)">
+      <span class="wordmark"><b>KIT</b><small>Karlsruher Institut für Technologie</small></span>
+    </span>
+  </div>
+</header>
+
+<div class="titleband">
+  <h1>Ebenes Pendel — interaktive Simulation</h1>
+  <div class="sub">Wiederholung: Lagrange-Gleichungen 2. Art in der Mechanik ·
+    <b>Beispiel 5‑19</b>, J. H. Williams, <i>Fundamentals of Applied Dynamics</i></div>
+</div>
+
+<section class="systemband">
+  <div class="figwrap">
+    <svg viewBox="62 24 400 290" role="img"
+         aria-label="Schematische Darstellung eines ebenen Pendels">
+      <defs>
+        <marker id="aN" markerWidth="9" markerHeight="7" refX="8.5" refY="3.5" orient="auto">
+          <path d="M0,0 L9,3.5 L0,7 z" fill="#040C77"/></marker>
+        <marker id="aK" markerWidth="8" markerHeight="7" refX="7.5" refY="3.5" orient="auto">
+          <path d="M0,0 L8,3.5 L0,7 z" fill="#161A22"/></marker>
+        <marker id="aKs" markerWidth="8" markerHeight="7" refX="0.5" refY="3.5" orient="auto">
+          <path d="M8,0 L0,3.5 L8,7 z" fill="#161A22"/></marker>
+      </defs>
+
+      <!-- Decke / Lager -->
+      <rect x="150" y="44" width="150" height="12" fill="#040C77"/>
+      <g stroke="#040C77" stroke-width="1.6">
+        <line x1="156" y1="56" x2="146" y2="70"/><line x1="176" y1="56" x2="166" y2="70"/>
+        <line x1="196" y1="56" x2="186" y2="70"/><line x1="216" y1="56" x2="206" y2="70"/>
+        <line x1="236" y1="56" x2="226" y2="70"/><line x1="256" y1="56" x2="246" y2="70"/>
+        <line x1="276" y1="56" x2="266" y2="70"/><line x1="296" y1="56" x2="286" y2="70"/>
+      </g>
+      <circle cx="220" cy="56" r="5.5" fill="#FAF7F0" stroke="#040C77" stroke-width="2"/>
+      <text x="232" y="40" font-size="12.5" font-family="Segoe UI, Arial" fill="#161A22">reibungsfreies Gelenk</text>
+
+      <!-- Lot, Bahnkurve, Ruhelage -->
+      <line x1="220" y1="56" x2="220" y2="300" stroke="#9A958A" stroke-width="1" stroke-dasharray="5 4"/>
+      <path d="M220,276 A220,220 0 0,0 346,236" fill="none" stroke="#C9C3B4"
+            stroke-width="1.2" stroke-dasharray="4 4"/>
+      <circle cx="220" cy="276" r="9" fill="none" stroke="#9A958A" stroke-width="1.4" stroke-dasharray="3 3"/>
+      <text x="196" y="298" text-anchor="end" font-size="12" font-family="Segoe UI, Arial"
+            fill="#5F6270">Ruhelage</text>
+
+      <!-- Winkel -->
+      <path d="M220,131 A75,75 0 0,1 263,117" fill="none" stroke="#040C77" stroke-width="1.6"
+            marker-end="url(#aN)"/>
+      <text x="236" y="113" font-size="16" font-family="Palatino Linotype, Georgia, serif"
+            font-style="italic" fill="#040C77">θ</text>
+
+      <!-- Stange und Masse -->
+      <line x1="220" y1="56" x2="346" y2="236" stroke="#040C77" stroke-width="3"/>
+      <circle cx="346" cy="236" r="14" fill="#B87A00" stroke="#161A22" stroke-width="1.2"/>
+      <text x="366" y="242" font-size="16" font-family="Palatino Linotype, Georgia, serif"
+            font-style="italic" fill="#161A22">m</text>
+      <text x="300" y="140" font-size="16" font-family="Palatino Linotype, Georgia, serif"
+            font-style="italic" fill="#040C77">ℓ</text>
+      <text x="352" y="176" font-size="12" font-family="Segoe UI, Arial" fill="#5F6270">masselos, starr</text>
+
+      <!-- Geometrie: l cos(theta) und h -->
+      <line x1="346" y1="236" x2="205" y2="236" stroke="#C9C3B4" stroke-width="1" stroke-dasharray="4 4"/>
+      <line x1="196" y1="56" x2="196" y2="236" stroke="#161A22" stroke-width="1"
+            marker-start="url(#aKs)" marker-end="url(#aK)"/>
+      <text x="188" y="150" text-anchor="end" font-size="13"
+            font-family="Palatino Linotype, Georgia, serif" font-style="italic"
+            fill="#161A22">ℓ cos θ</text>
+      <line x1="196" y1="236" x2="196" y2="276" stroke="#161A22" stroke-width="1"
+            marker-start="url(#aKs)" marker-end="url(#aK)"/>
+      <text x="188" y="262" text-anchor="end" font-size="13"
+            font-family="Palatino Linotype, Georgia, serif" font-style="italic"
+            fill="#161A22">h = ℓ(1 − cos θ)</text>
+
+      <!-- Schwerkraft -->
+      <line x1="78" y1="96" x2="78" y2="156" stroke="#040C77" stroke-width="2.4" marker-end="url(#aN)"/>
+      <text x="86" y="132" font-size="16" font-family="Palatino Linotype, Georgia, serif"
+            font-style="italic" fill="#040C77">g</text>
+    </svg>
+    <div class="figcap">Ebenes Pendel — nachgezeichnet nach Williams, <i>Fundamentals of Applied
+      Dynamics</i>, Bild 5‑23 (Beispiel 5‑19).</div>
+  </div>
+
+  <div class="sysnote">
+    <h2>Das System</h2>
+    <p>Eine Punktmasse <i>m</i> hängt an einer masselosen, starren Stange der Länge <i>ℓ</i>;
+      das obere Ende sitzt in einem reibungsfreien Gelenk, die Bewegung bleibt in der Ebene.
+      Der Winkel <i>θ</i> wird von der hängenden Ruhelage aus gezählt. Ein Freiheitsgrad,
+      eine generalisierte Koordinate — das System ist <b>holonom</b>.</p>
+    <div class="deflist">
+      <div><dt><i>θ</i></dt><dd>generalisierte Koordinate, gezählt ab der Ruhelage</dd></div>
+      <div><dt><i>T</i>*</dt><dd>½<i>m</i>(<i>ℓθ̇</i>)² — kinetische Koenergie</dd></div>
+      <div><dt><i>V</i></dt><dd><i>mgℓ</i>(1 − cos <i>θ</i>) — potentielle Energie, Bezug Ruhelage</dd></div>
+      <div><dt><i>Ξ</i><sub>θ</sub></dt><dd>= 0 — die Stangenkraft ist eine arbeitsfreie Zwangskraft,
+        die Schwerkraft steckt bereits in <i>V</i></dd></div>
+      <div><dt><i>T</i>₀</dt><dd>2π√(<i>ℓ</i>/<i>g</i>) — Periode der linearisierten Lösung</dd></div>
+    </div>
+  </div>
+</section>
+
+<div class="bandhead">
+  <h2>Von der Lagrangefunktion zur Bewegungsgleichung</h2>
+  <span class="kicker">das Vier-Schritte-Rezept aus der Mechanik</span>
+  <button class="toggle-btn" id="tgl">Herleitung ausblenden</button>
+</div>
+
+<section class="derivation" id="deriv">
+  <div class="steps">
+
+    <div class="step">
+      <h3>① Koordinate</h3>
+      <div class="eq"><i>ξ</i> : <i>θ</i> &nbsp;&nbsp; δ<i>ξ</i> : δ<i>θ</i></div>
+      <div class="cmt">Ein Freiheitsgrad, eine generalisierte Koordinate und eine zulässige
+        Variation ⇒ das System ist <b>holonom</b>. Erst danach darf der Lagrange-Formalismus
+        angewandt werden.</div>
+    </div>
+
+    <div class="step">
+      <h3>② Generalisierte Kraft</h3>
+      <div class="eq">δ𝒲<sup>nc</sup> = Σ <i>f</i><sub>i</sub><sup>nc</sup>·δ<i>R</i><sub>i</sub>
+        = <i>Ξ</i><sub>θ</sub> δ<i>θ</i> = 0</div>
+      <div class="eq"><i>Ξ</i><sub>θ</sub> = 0</div>
+      <div class="cmt">Die Schwerkraft ist konservativ und steckt in <i>V</i>; die Stangenkraft
+        steht senkrecht auf der Bewegung und leistet keine Arbeit. <b>Ξ<sub>θ</sub> existiert
+        und ist null</b> — das ist nicht dasselbe wie „gibt es nicht“.</div>
+    </div>
+
+    <div class="step">
+      <h3>③ Lagrangefunktion</h3>
+      <div class="eq"><i>T</i>* = ½<i>m</i>(<i>ℓθ̇</i>)²</div>
+      <div class="eq"><i>V</i> = <i>mgℓ</i>(1 − cos <i>θ</i>)</div>
+      <div class="eq">ℒ = <i>T</i>* − <i>V</i></div>
+      <div class="cmt">Bezugsniveau frei wählbar: relativ zum Gelenk wäre
+        <i>V</i> = −<i>mgℓ</i> cos <i>θ</i>. Beide unterscheiden sich nur um eine Konstante —
+        und eine additive Konstante in ℒ ändert die Bewegungsgleichung nicht.</div>
+    </div>
+
+    <div class="step">
+      <h3>④ Lagrange-Gleichung</h3>
+      <div class="eq">
+        <span class="frac"><span>d</span><span>d<i>t</i></span></span>
+        <span class="frac"><span>∂ℒ</span><span>∂<i>θ̇</i></span></span> −
+        <span class="frac"><span>∂ℒ</span><span>∂<i>θ</i></span></span> = <i>Ξ</i><sub>θ</sub></div>
+      <div class="cmt">∂ℒ/∂<i>θ̇</i> = <i>mℓ</i>²<i>θ̇</i> &nbsp;→&nbsp; <i>mℓ</i>²<i>θ̈</i>,
+        &nbsp; ∂ℒ/∂<i>θ</i> = −<i>mgℓ</i> sin <i>θ</i>.</div>
+    </div>
+
+  </div>
+
+  <div class="results">
+    <div class="result">
+      <div class="tag">Bewegungsgleichung — nichtlinear</div>
+      <div class="eq"><i>mℓ</i>²<i>θ̈</i> + <i>mgℓ</i> sin <i>θ</i> = 0
+        &nbsp;&nbsp;⟺&nbsp;&nbsp; <i>θ̈</i> +
+        <span class="frac"><span><i>g</i></span><span><i>ℓ</i></span></span> sin <i>θ</i> = 0</div>
+    </div>
+    <div class="result">
+      <div class="tag">Linearisiert für kleine Ausschläge</div>
+      <div class="eq"><i>mℓ</i>²<i>θ̈</i> + <i>mgℓθ</i> = 0 &nbsp;&nbsp;→&nbsp;&nbsp;
+        <i>T</i>₀ = 2π√(<i>ℓ</i>/<i>g</i>)</div>
+    </div>
+  </div>
+
+  <div class="keynote"><b>Zwei Beobachtungen.</b> Erstens kürzt sich die Masse vollständig heraus:
+    die Bewegung hängt nur von <i>ℓ</i> und <i>g</i> ab, nicht von <i>m</i>. Zweitens macht allein
+    der Term sin <i>θ</i> die Gleichung nichtlinear; die Maclaurin-Reihe
+    sin <i>θ</i> = <i>θ</i> − <i>θ</i>³/3! + <i>θ</i>⁵/5! − ⋯, nach dem ersten Glied abgebrochen,
+    liefert die lineare Gleichung. Deren Periode <i>T</i>₀ ist <i>unabhängig</i> von der Amplitude —
+    die exakte dagegen nicht:
+    <div class="ptable">
+      <span><i>θ</i>₀ = 30° → 1,017</span><span>60° → 1,073</span><span>90° → 1,180</span>
+      <span>120° → 1,373</span><span>150° → 1,762</span><span>170° → 2,439</span>
+      <span>180° → ∞</span>
+    </div>
+    <span style="font-size:11.5px">(exakte Werte von <i>T</i>/<i>T</i>₀ aus dem elliptischen
+      Integral 1. Art — unten als Kurve nachgerechnet)</span>
+  </div>
+</section>
+
+<div class="lab">
+  <div class="panel">
+    <h2>Parameter</h2>
+
+    <div class="ctrl">
+      <label><span>Anfangsauslenkung <i>θ</i>₀</span><span class="val" id="vT">30°</span></label>
+      <input type="range" id="th0" min="1" max="179" step="1" value="30">
+      <div class="hint">Start aus der Ruhe. Je größer <i>θ</i>₀, desto stärker weicht die exakte
+        Lösung von der linearisierten ab.</div>
+    </div>
+    <div class="ctrl">
+      <label><span>Pendellänge <i>ℓ</i></span><span class="val" id="vL">1.00 m</span></label>
+      <input type="range" id="L" min="0.1" max="3" step="0.05" value="1">
+      <div class="hint">Setzt zusammen mit <i>g</i> die Bezugsperiode
+        <i>T</i>₀ = <b id="t0Val">2.01 s</b>.</div>
+    </div>
+    <div class="ctrl">
+      <label><span>Fallbeschleunigung <i>g</i></span><span class="val" id="vG">9.81 m/s²</span></label>
+      <input type="range" id="g" min="1" max="25" step="0.01" value="9.81">
+      <div class="hint">Erde 9,81 · Mond 1,62 · Mars 3,72 · Jupiter 24,8.</div>
+    </div>
+
+    <div class="switch">
+      <label><input type="checkbox" id="showlin" checked>
+        <span>linearisierte Lösung einblenden</span></label>
+      <div class="hint">Zeigt <i>θ</i>(<i>t</i>) = <i>θ</i>₀ cos(√(<i>g</i>/<i>ℓ</i>) <i>t</i>)
+        zum Vergleich. Bei festem Zeitfenster (siehe Achsenleiste) wird die wachsende
+        Phasenverschiebung unmittelbar sichtbar; „automatisch“ setzt das Fenster auf 3 <i>T</i>₀.</div>
+    </div>
+
+    <button class="reset" id="reset">Zurücksetzen</button>
+
+    <div class="status" id="status"></div>
+  </div>
+
+  <div style="flex:1;min-width:520px">
+    <div class="legend">
+      <span><i class="swatch" style="background:#040C77"></i><span>exakt (nichtlinear)</span></span>
+      <span><i class="swatch dash" style="color:#B87A00"></i><span>linearisiert</span></span>
+      <span><i class="swatch" style="background:#8900B5"></i><span><i>T</i>/<i>T</i>₀ exakt</span></span>
+      <span><i class="swatch dash" style="color:#9A958A"></i><span>Reihe bis <i>θ</i>₀⁴</span></span>
+    </div>
+    <canvas id="cv" width="1040" height="630"></canvas>
+
+    <div class="axisbar">
+      <span class="axlabel">Achsen</span>
+      <label class="seg"><input type="radio" name="axmode" id="axfix" checked> fest</label>
+      <label class="seg"><input type="radio" name="axmode" id="axauto"> automatisch</label>
+      <span class="axgrp"><span class="axkey">y</span>
+        <span class="axfield"><i>θ</i> ±<input type="number" id="spanT" value="180" min="1" step="10"> °</span>
+        <span class="axfield"><i>T</i>/<i>T</i>₀ bis <input type="number" id="spanR" value="2.5" min="1.05" step="0.1"></span>
+      </span>
+      <span class="axgrp"><span class="axkey">x</span>
+        <span class="axfield">Zeitfenster <input type="number" id="spanX1" value="6" min="0.2" step="0.5"> s</span>
+        <span class="axfield"><i>θ</i>₀ bis <input type="number" id="spanX2" value="180" min="10" max="180" step="10"> °</span>
+      </span>
+      <button class="axbtn" id="axfit">An aktuelle Kurven anpassen</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Modell und Gleichungen nach J. H. Williams Jr., <i>Fundamentals of Applied Dynamics</i>,
+  John Wiley &amp; Sons 1996, §5‑5 (Tab. 5‑1), Beispiel 5‑19 (Simple Plane Pendulum) und Tab. 5‑2.
+  Numerik: klassisches Runge-Kutta-Verfahren 4. Ordnung für die nichtlineare Gleichung; die exakte
+  Periode über das arithmetisch-geometrische Mittel (elliptisches Integral 1. Art).
+</footer>
+
+<script>
+function logoFallback(img){
+  img.style.display = 'none';
+  img.nextElementSibling.style.display = 'flex';
+}
+
+// ---------- Modell ----------
+// Nichtlinear:  thetaddot + (g/l) sin(theta) = 0,  Start aus der Ruhe bei theta0.
+// Linearisiert: theta(t) = theta0 cos(w0 t) mit w0 = sqrt(g/l), Periode T0 = 2 pi / w0.
+const DEG = Math.PI/180;
+let P = {th0: 30*DEG, L: 1.0, g: 9.81};
+
+const rhs = y => [y[1], -(P.g/P.L)*Math.sin(y[0])];
+
+function rk4(y, dt){
+  const k1 = rhs(y);
+  const k2 = rhs([y[0]+dt/2*k1[0], y[1]+dt/2*k1[1]]);
+  const k3 = rhs([y[0]+dt/2*k2[0], y[1]+dt/2*k2[1]]);
+  const k4 = rhs([y[0]+dt*k3[0],   y[1]+dt*k3[1]]);
+  return [0,1].map(j => y[j] + dt/6*(k1[j] + 2*k2[j] + 2*k3[j] + k4[j]));
+}
+
+// Kurven fuer das gewaehlte Zeitfenster (Schrittzahl skaliert mit der Zahl der Perioden)
+function simulate(win){
+  const w0 = Math.sqrt(P.g/P.L), T0 = 2*Math.PI/w0;
+  const n = Math.max(3000, Math.min(40000, Math.round(400*win/T0)));
+  const dt = win/n, every = Math.max(1, Math.round(n/1200));
+  let y = [P.th0, 0], t = 0;
+  const out = {t:[], nl:[], lin:[], T0:T0, window:win};
+  for (let i = 0; i <= n; i++){
+    if (i % every === 0){
+      out.t.push(t);
+      out.nl.push(y[0]/DEG);
+      out.lin.push(P.th0*Math.cos(w0*t)/DEG);
+    }
+    y = rk4(y, dt); t += dt;
+  }
+  return out;
+}
+
+// Periodenmessung unabhaengig vom eingestellten Zeitfenster:
+// erster Nulldurchgang nach unten = Viertelperiode (lineare Interpolation)
+function measurePeriod(){
+  const T0 = 2*Math.PI/Math.sqrt(P.g/P.L);
+  const tmax = 1.2*periodRatio(P.th0)*T0, dt = tmax/8000;
+  let y = [P.th0, 0], t = 0;
+  for (let i = 0; i < 8000; i++){
+    const yn = rk4(y, dt);
+    if (y[0] > 0 && yn[0] <= 0) return 4*(t + dt*y[0]/(y[0]-yn[0]));
+    y = yn; t += dt;
+  }
+  return NaN;
+}
+
+// exakte Periode: T/T0 = 1 / AGM(1, cos(theta0/2))
+function periodRatio(th0){
+  let a = 1, b = Math.cos(th0/2);
+  for (let i = 0; i < 60 && Math.abs(a-b) > 1e-15; i++){
+    const an = (a+b)/2; b = Math.sqrt(a*b); a = an;
+  }
+  return 1/a;
+}
+// Reihenentwicklung bis zur 4. Ordnung
+const ratioSeries = th0 => 1 + th0*th0/16 + 11*Math.pow(th0,4)/3072;
+
+// ---------- Zeichnen ----------
+const cv = document.getElementById('cv'), g2 = cv.getContext('2d');
+const W = cv.width, H = cv.height, ML = 96, MR = 26, MT = 22;
+const PH_A = 296, GAP = 64, PH_B = 196;
+const YA = MT, YB = MT + PH_A + GAP;
+const SERIF = '13px "Palatino Linotype", Georgia, serif';
+const TITLE_X = 32;
+let LBL_FONT = SERIF, LBL_SCALE = 1, LBL_SIZE = 13;
+
+// Achsentitel zweizeilig (Name | Symbol + Einheit); Schriftgrad wird an die kleinste
+// Panelhoehe angepasst, damit sich benachbarte Titel nie ueberlagern.
+const unitText = (sym, unit) => sym + '  [' + unit + ']';
+
+function fitLabelFont(lines){
+  const avail = Math.min(PH_A, PH_B) - 10;
+  let size = 13, widest = 0;
+  for (;;){
+    g2.font = size + 'px "Palatino Linotype", Georgia, serif';
+    widest = Math.max(...lines.map(t => g2.measureText(t).width));
+    if (widest <= avail || size <= 10) break;
+    size -= 0.5;
+  }
+  return {font: g2.font, size: size, scale: widest > avail ? avail / widest : 1};
+}
+
+function yTitle(y0, ph, name, sym, unit){
+  g2.save(); g2.translate(TITLE_X, y0 + ph/2); g2.rotate(-Math.PI/2);
+  if (LBL_SCALE !== 1) g2.scale(LBL_SCALE, 1);
+  g2.textAlign = 'center'; g2.textBaseline = 'middle';
+  g2.fillStyle = '#161A22'; g2.font = LBL_FONT;
+  const lh = LBL_SIZE * 1.3;
+  g2.fillText(name, 0, -lh/2);
+  g2.fillText(unitText(sym, unit), 0, lh/2);
+  g2.restore();
+}
+
+function frame(y0, ph, ymin, ymax, xmin, xmax, xfmt, xlabel, dec){
+  const w = W - ML - MR;
+  g2.strokeStyle = '#161A22'; g2.lineWidth = 1;
+  g2.beginPath(); g2.moveTo(ML, y0); g2.lineTo(ML, y0+ph); g2.lineTo(ML+w, y0+ph); g2.stroke();
+  g2.font = '11.5px "Segoe UI", Arial'; g2.textAlign = 'right'; g2.textBaseline = 'alphabetic';
+  for (let s = 0; s <= 4; s++){
+    const yy = y0 + ph - s/4*ph, vv = ymin + s/4*(ymax-ymin);
+    g2.strokeStyle = '#EFEADE'; g2.lineWidth = 1;
+    g2.beginPath(); g2.moveTo(ML, yy); g2.lineTo(ML+w, yy); g2.stroke();
+    g2.fillStyle = '#5F6270'; g2.fillText(vv.toFixed(dec), ML-8, yy+4);
+  }
+  if (ymin < 0 && ymax > 0){
+    const yz = y0 + ph - (0-ymin)/(ymax-ymin)*ph;
+    g2.strokeStyle = '#C9C3B4'; g2.lineWidth = 1;
+    g2.beginPath(); g2.moveTo(ML, yz); g2.lineTo(ML+w, yz); g2.stroke();
+  }
+  g2.fillStyle = '#5F6270'; g2.font = '11.5px "Segoe UI", Arial'; g2.textAlign = 'center';
+  for (let s = 0; s <= 5; s++){
+    const vv = xmin + s/5*(xmax-xmin);
+    g2.fillText(xfmt(vv), ML + s/5*w, y0 + ph + 17);
+  }
+  g2.fillStyle = '#161A22'; g2.font = SERIF;
+  g2.fillText(xlabel, ML + w/2, y0 + ph + 38);
+  return w;
+}
+
+function curve(y0, ph, xs, ys, xmin, xmax, ymin, ymax, color, dash, width){
+  const w = W - ML - MR;
+  g2.save(); g2.beginPath(); g2.rect(ML, y0, w, ph); g2.clip();
+  g2.strokeStyle = color; g2.lineWidth = width || 2.2;
+  if (dash) g2.setLineDash(dash);
+  g2.beginPath();
+  for (let n = 0; n < xs.length; n++){
+    const px = ML + (xs[n]-xmin)/(xmax-xmin)*w;
+    const py = y0 + ph - (ys[n]-ymin)/(ymax-ymin)*ph;
+    n ? g2.lineTo(px, py) : g2.moveTo(px, py);
+  }
+  g2.stroke(); g2.setLineDash([]); g2.restore();
+}
+
+function overflowNote(y0, ys, ymin, ymax){
+  const w = W - ML - MR;
+  if (Math.max(...ys) > ymax*1.002 || Math.min(...ys) < ymin*1.002){
+    g2.fillStyle = '#B87A00'; g2.font = 'italic 11.5px "Segoe UI", Arial'; g2.textAlign = 'right';
+    g2.fillText('Kurve verlässt den Achsenbereich', ML + w - 8, y0 + 14);
+  }
+}
+
+function draw(){
+  const showLin = document.getElementById('showlin').checked;
+  const fixedAx = document.getElementById('axfix').checked;
+  const num = (id, fb) => { const v = parseFloat(document.getElementById(id).value);
+                            return (isFinite(v) && v > 0) ? v : fb; };
+
+  // x-Achsen: Zeitfenster (Panel A) und theta0-Bereich (Panel B)
+  const T0ref = 2*Math.PI/Math.sqrt(P.g/P.L);
+  const autoWin = 3*T0ref, autoDeg = 180;
+  const win  = fixedAx ? num('spanX1', autoWin) : autoWin;
+  const degMax = Math.min(180, fixedAx ? num('spanX2', autoDeg) : autoDeg);
+
+  const out = simulate(win);
+  g2.clearRect(0, 0, W, H);
+
+  // --- Achsenspannen: fest (Standard) oder automatisch
+  const nice = v => { if (!(v>0)) return 1;
+    const e = Math.pow(10, Math.floor(Math.log10(v))), m = v/e;
+    return (m<=1?1:m<=1.5?1.5:m<=2?2:m<=2.5?2.5:m<=3?3:m<=5?5:10)*e; };
+  const autoT = nice(Math.max(...out.nl.map(Math.abs))*1.15);
+  const ratios = [], series = [], degs = [];
+  for (let d = 0; d <= 180; d += 1){
+    degs.push(d); ratios.push(periodRatio(d*DEG)); series.push(ratioSeries(d*DEG));
+  }
+  const cur = periodRatio(P.th0);
+  const autoR = Math.min(6, nice(cur*1.2));
+  autoSpan = {T: autoT, R: autoR, X1: +autoWin.toFixed(2), X2: autoDeg};
+
+  const spanT = fixedAx ? num('spanT', autoT) : autoT;
+  const spanR = fixedAx ? num('spanR', autoR) : autoR;
+
+  const fit = fitLabelFont(['Auslenkung', 'θ  [°]', 'Periodenverhältnis', 'T/T₀  [–]']);
+  LBL_FONT = fit.font; LBL_SIZE = fit.size; LBL_SCALE = fit.scale;
+
+  // --- Panel A: theta(t)
+  frame(YA, PH_A, -spanT, spanT, 0, win, v => v.toFixed(2), 'Zeit   [s]', 0);
+  yTitle(YA, PH_A, 'Auslenkung', 'θ', '°');
+  if (showLin)
+    curve(YA, PH_A, out.t, out.lin, 0, win, -spanT, spanT, '#B87A00', [7,5], 2);
+  curve(YA, PH_A, out.t, out.nl, 0, win, -spanT, spanT, '#040C77', null, 2.4);
+  overflowNote(YA, out.nl, -spanT, spanT);
+
+  // --- Panel B: T/T0 ueber theta0
+  frame(YB, PH_B, 1, spanR, 0, degMax, v => v.toFixed(0) + '°',
+        'Anfangsauslenkung   θ₀   [°]', 2);
+  yTitle(YB, PH_B, 'Periodenverhältnis', 'T/T₀', '–');
+  curve(YB, PH_B, degs, series, 0, degMax, 1, spanR, '#9A958A', [6,4], 1.8);
+  curve(YB, PH_B, degs, ratios, 0, degMax, 1, spanR, '#8900B5', null, 2.4);
+  // aktueller Betriebspunkt
+  const w = W - ML - MR;
+  const px = ML + (P.th0/DEG)/degMax*w;
+  const py = YB + PH_B - (Math.min(cur, spanR)-1)/(spanR-1)*PH_B;
+  g2.save(); g2.beginPath(); g2.rect(ML, YB, w, PH_B); g2.clip();
+  g2.strokeStyle = '#C9C3B4'; g2.lineWidth = 1; g2.setLineDash([4,4]);
+  g2.beginPath(); g2.moveTo(px, YB); g2.lineTo(px, YB+PH_B); g2.stroke(); g2.setLineDash([]);
+  g2.fillStyle = '#8900B5';
+  g2.beginPath(); g2.arc(px, py, 4.5, 0, 2*Math.PI); g2.fill();
+  g2.restore();
+
+  // --- Status
+  const T0 = out.T0, Tm = measurePeriod(), err = (cur - 1)*100;
+  document.getElementById('t0Val').textContent = T0.toFixed(2) + ' s';
+  document.getElementById('status').innerHTML =
+    '<b>Ergebnis</b>' +
+    '<table>' +
+    '<tr><td>Bezugsperiode <i>T</i>₀</td><td>' + T0.toFixed(3) + ' s</td></tr>' +
+    '<tr><td>exakte Periode <i>T</i></td><td>' + Tm.toFixed(3) + ' s</td></tr>' +
+    '<tr><td><i>T</i>/<i>T</i>₀</td><td>' + cur.toFixed(3) + '</td></tr>' +
+    '<tr><td>Abweichung <i>T</i>/<i>T</i>₀ − 1</td><td>' + err.toFixed(1) + ' %</td></tr>' +
+    '</table>';
+}
+
+// ---------- Bedienung ----------
+let autoSpan = {T:180, R:2.5, X1:6, X2:180};
+const fmt = {th0: v => v.toFixed(0) + '°', L: v => v.toFixed(2) + ' m', g: v => v.toFixed(2) + ' m/s²'};
+const ids = {th0:'vT', L:'vL', g:'vG'};
+const toSI = {th0: v => v*DEG, L: v => v, g: v => v};
+
+function sync(){
+  for (const key in ids){
+    const raw = parseFloat(document.getElementById(key).value);
+    P[key] = toSI[key](raw);
+    document.getElementById(ids[key]).textContent = fmt[key](raw);
+  }
+  draw();
+}
+for (const key in ids) document.getElementById(key).addEventListener('input', sync);
+document.getElementById('showlin').addEventListener('change', draw);
+
+const DEF = {th0:30, L:1, g:9.81};
+document.getElementById('reset').onclick = () => {
+  for (const key in DEF) document.getElementById(key).value = DEF[key];
+  document.getElementById('showlin').checked = true;
+  sync();
+};
+
+// --- Achsensteuerung ---
+const spanIds = ['spanT','spanR','spanX1','spanX2'];
+function syncAxisUI(){
+  const fixedAx = document.getElementById('axfix').checked;
+  spanIds.forEach(id => document.getElementById(id).disabled = !fixedAx);
+}
+['axfix','axauto'].forEach(id =>
+  document.getElementById(id).addEventListener('change', () => { syncAxisUI(); draw(); }));
+spanIds.forEach(id => document.getElementById(id).addEventListener('input', draw));
+document.getElementById('axfit').onclick = () => {
+  document.getElementById('axfix').checked = true;
+  syncAxisUI();
+  document.getElementById('spanT').value  = autoSpan.T;
+  document.getElementById('spanR').value  = autoSpan.R;
+  document.getElementById('spanX1').value = autoSpan.X1;
+  document.getElementById('spanX2').value = autoSpan.X2;
+  draw();
+};
+syncAxisUI();
+
+const tgl = document.getElementById('tgl'), deriv = document.getElementById('deriv');
+tgl.onclick = () => {
+  const hidden = deriv.style.display === 'none';
+  deriv.style.display = hidden ? '' : 'none';
+  tgl.textContent = hidden ? 'Herleitung ausblenden' : 'Herleitung einblenden';
+};
+
+sync();
+</script>
+</body>
+</html>
