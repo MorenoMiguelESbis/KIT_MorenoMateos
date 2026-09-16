@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kondensatormikrofon — Lagrange 2. Art, interaktive Simulation</title>
+<style>
+  :root{
+    --navy:#040C77; --navy-2:#2A3390; --navy-pale:#E7E9F6;
+    --ink:#161A22; --muted-txt:#5F6270;
+    --paper:#FAF7F0; --card:#FFFFFF; --band:#F3EFE4; --rule:#DCD4C2;
+    --amber:#B87A00; --amber-soft:#FFD966;
+    --mag:#8900B5; --grey:#9A958A;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);
+       font-family:"Segoe UI",Calibri,Carlito,system-ui,Arial,sans-serif;font-size:15px;line-height:1.5}
+  .serif{font-family:"Palatino Linotype","Book Antiqua",Palatino,"URW Palladio L",Georgia,serif}
+
+  /* ---------------- masthead ---------------- */
+  .masthead{background:var(--navy);color:#fff;padding:14px 30px;
+            display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+  .who .name{font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;
+             font-size:20px;letter-spacing:.2px}
+  .who .role{font-size:12.5px;color:#B9BEE4;margin-top:2px;letter-spacing:.3px;text-transform:uppercase}
+  .logos{display:flex;align-items:center;gap:18px}
+  .logo img{height:38px;display:block;filter:brightness(0) invert(1)}
+  .wordmark{display:none;flex-direction:column;line-height:1.05;
+            font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif}
+  .wordmark b{font-size:19px;letter-spacing:1.5px}
+  .wordmark small{font-size:9.5px;letter-spacing:.9px;color:#B9BEE4;text-transform:uppercase;margin-top:2px}
+  .wm-sep{width:1px;height:34px;background:#3A44A0}
+
+  /* ---------------- title band ---------------- */
+  .titleband{padding:20px 30px 6px}
+  h1{font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;
+     font-size:27px;font-weight:600;margin:0;color:var(--navy)}
+  .sub{color:var(--muted-txt);font-size:14px;margin-top:5px}
+  .sub b{color:var(--ink)}
+
+  /* ---------------- system band (figure) ---------------- */
+  .systemband{display:flex;gap:30px;align-items:flex-start;flex-wrap:wrap;padding:14px 30px 4px}
+  .figwrap{flex:0 1 540px;min-width:340px}
+  .figwrap svg{width:100%;height:auto;display:block}
+  .figcap{font-size:11.5px;color:var(--muted-txt);margin-top:4px;font-style:italic}
+  .sysnote{flex:1 1 300px;min-width:280px;padding-top:4px}
+  .sysnote h2{font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;
+              font-size:17px;margin:0 0 8px;color:var(--navy);font-weight:600}
+  .sysnote p{margin:0 0 9px;font-size:13px;line-height:1.55}
+  .deflist{border-top:1px solid var(--rule);margin-top:4px}
+  .deflist div{display:flex;gap:12px;padding:5px 0;border-bottom:1px solid var(--rule);font-size:12.5px}
+  .deflist dt{flex:0 0 96px;font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;
+              font-size:14px;color:var(--navy);margin:0}
+  .deflist dd{margin:0;color:var(--ink)}
+
+  /* ---------------- axis controls ---------------- */
+  .axisbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:10px;
+           padding:9px 13px;background:var(--band);border:1px solid var(--rule);font-size:12.5px}
+  .axisbar .axlabel{font-weight:700;color:var(--navy);letter-spacing:.4px;text-transform:uppercase;
+                    font-size:11.5px}
+  .axisbar .seg{display:flex;align-items:center;gap:5px;cursor:pointer}
+  .axisbar .seg input{accent-color:var(--navy);cursor:pointer}
+  .axfield{display:flex;align-items:center;gap:5px;color:var(--muted-txt)}
+  .axfield input{width:62px;padding:3px 5px;font-family:inherit;font-size:12.5px;
+                 border:1px solid var(--rule);background:#fff;color:var(--ink)}
+  .axfield input:disabled{background:#EFEBE0;color:#9A958A}
+  .axgrp{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+         padding-left:13px;border-left:1px solid var(--rule)}
+  .axkey{font-family:"Palatino Linotype",Georgia,serif;font-style:italic;
+         color:var(--navy);font-size:13.5px}
+  .axbtn{margin-left:auto;font-size:11.5px;padding:4px 11px;border-radius:2px;cursor:pointer;
+         border:1px solid var(--navy);background:transparent;color:var(--navy);font-family:inherit}
+  .axbtn:hover{background:var(--navy);color:#fff}
+
+  /* ---------------- derivation band ---------------- */
+  .bandhead{display:flex;align-items:baseline;gap:14px;padding:16px 30px 0}
+  .bandhead h2{font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;
+               font-size:17px;margin:0;color:var(--navy);font-weight:600}
+  .bandhead .kicker{font-size:12px;color:var(--muted-txt);letter-spacing:.4px}
+  .toggle-btn{margin-left:auto;font-size:12px;padding:4px 12px;border-radius:2px;cursor:pointer;
+              border:1px solid var(--navy);background:transparent;color:var(--navy);
+              font-family:inherit;letter-spacing:.3px}
+  .toggle-btn:hover{background:var(--navy);color:#fff}
+
+  .derivation{background:var(--band);border-top:1px solid var(--rule);
+              border-bottom:1px solid var(--rule);margin-top:10px;padding:16px 30px 18px}
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .step{background:var(--card);border:1px solid var(--rule);border-top:2.5px solid var(--navy);
+        padding:11px 13px 12px}
+  .step h3{margin:0 0 7px;font-size:12px;letter-spacing:.7px;text-transform:uppercase;
+           color:var(--navy-2);font-weight:700}
+  .step .eq{margin:5px 0}
+  .step .cmt{font-size:11.5px;color:var(--muted-txt);margin-top:7px;line-height:1.45}
+
+  .eq{font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;font-size:15.5px}
+  .eq i,.var{font-style:italic}
+  .frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 .16em}
+  .frac>span:first-child{border-bottom:1px solid currentColor;padding:0 .3em;font-size:.88em}
+  .frac>span:last-child{padding:0 .3em;font-size:.88em}
+
+  .results{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+  .result{background:var(--navy-pale);border:1px solid #C3C8EA;border-left:3px solid var(--navy);
+          padding:10px 14px}
+  .result .tag{font-size:11px;letter-spacing:.7px;text-transform:uppercase;color:var(--navy-2);
+               font-weight:700;margin-bottom:4px}
+  .result .eq{font-size:16.5px}
+  .keynote{margin-top:12px;font-size:12.5px;color:var(--muted-txt);border-left:2px solid var(--amber);
+           padding-left:11px;line-height:1.5}
+  .keynote b{color:var(--ink)}
+  .result .note{font-size:11.5px;color:var(--muted-txt);margin-top:5px;line-height:1.45}
+
+  /* --- Umschaltung der Herleitung: .k-on gilt fuer C(x), .k-off fuer C = const --- */
+  .k-off{display:none}
+  body.nocoup .k-on{display:none}
+  body.nocoup .k-off{display:block}
+  /* Die Ergebniskaesten behalten in beiden Faellen dieselbe Navy-Optik; den Grenzfall
+     markieren der Hinweis oben und der Zusatz "entkoppelt" in den Tags. */
+  .gcase{display:none;margin:13px 0 0;padding:8px 12px;font-size:12.5px;line-height:1.5;
+         background:#FBF5E6;border:1px solid #E3D3A8;border-left:3px solid var(--amber)}
+  body.nocoup .gcase{display:block}
+  /* Spiegel-Schalter im Bandkopf, damit man die Gleichungen beim Umschalten im Blick hat */
+  .bandsw{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted-txt);
+          letter-spacing:.3px;cursor:pointer;user-select:none;white-space:nowrap}
+  .bandsw input{margin:0;cursor:pointer}
+  /* Schmale Fenster: Kopfzeile umbrechen lassen, statt die drei Elemente zu quetschen */
+  @media (max-width:960px){ .bandhead{flex-wrap:wrap} .bandsw{margin-left:auto} }
+
+  /* ---------------- lab ---------------- */
+  .lab{display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap;padding:20px 30px 26px}
+  .panel{width:282px;flex-shrink:0}
+  .panel h2{font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;
+            font-size:15px;margin:0 0 12px;color:var(--navy);
+            border-bottom:1px solid var(--rule);padding-bottom:6px;font-weight:600}
+  .ctrl{margin-bottom:13px}
+  .ctrl label{display:flex;justify-content:space-between;align-items:baseline;
+              font-size:12.5px;font-weight:600;margin-bottom:4px;letter-spacing:.2px}
+  .ctrl .val{color:var(--navy);font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;
+             font-size:14px;font-style:italic}
+  .ctrl .hint{font-size:11px;color:var(--muted-txt);font-weight:400;margin-top:2px;line-height:1.35}
+  input[type=range]{width:100%;accent-color:var(--navy);height:18px}
+  canvas{border:1px solid var(--rule);background:var(--card);max-width:100%;height:auto}
+  .switch{margin:14px 0 2px;padding:9px 11px;background:var(--band);border:1px solid var(--rule)}
+  .switch label{display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer;font-weight:600}
+  .switch input{width:15px;height:15px;accent-color:var(--mag);cursor:pointer}
+  .switch .hint{font-size:11px;color:var(--muted-txt);font-weight:400;margin-top:5px;line-height:1.35}
+  .status{margin-top:13px;padding:10px 12px;background:#FFFBF0;border:1px solid var(--amber-soft);
+          border-left:3px solid var(--amber);font-size:12.5px;line-height:1.5}
+  .status b{color:var(--amber)}
+  button.reset{width:100%;margin-top:14px;padding:8px;font-size:12.5px;font-weight:600;
+               font-family:inherit;letter-spacing:.3px;cursor:pointer;
+               border:1px solid var(--navy);background:var(--navy);color:#fff;border-radius:2px}
+  button.reset:hover{background:var(--navy-2)}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:9px;font-size:12px;color:var(--muted-txt)}
+  .legend > span{display:flex;align-items:center;gap:6px}
+  .swatch{width:16px;height:3px;display:inline-block}
+
+  footer{padding:14px 30px 26px;font-size:11.5px;color:var(--muted-txt);
+         border-top:1px solid var(--rule);margin-top:4px}
+
+  @media (max-width:1100px){ .steps{grid-template-columns:repeat(2,1fr)} .results{grid-template-columns:1fr} }
+  @media (max-width:600px){ .steps{grid-template-columns:1fr} .masthead,.titleband,.derivation,.lab,footer{padding-left:16px;padding-right:16px} }
+</style>
+</head>
+<body>
+
+<!--
+  LOGOS: die beiden <img>-Tags unten erwarten die offiziellen Logodateien neben dieser
+  HTML-Datei, unter den Namen  fau-logo.png  und  kit-logo.png  (PNG oder SVG mit weißer
+  bzw. einfarbiger Variante). Sind die Dateien nicht vorhanden, zeigt die Seite automatisch
+  eine schlichte Schriftmarke an. Einfach die offiziellen Dateien danebenlegen — sonst ist
+  nichts zu tun.
+-->
+<header class="masthead">
+  <div class="who">
+    <div class="name">Dr. Miguel Ángel Moreno Mateos</div>
+    <div class="role">Lehrprobe · Karlsruher Institut für Technologie · 2. Oktober 2026</div>
+  </div>
+  <div class="logos">
+    <span class="logo">
+      <img src="fau-logo.png" alt="FAU Erlangen-Nürnberg" onerror="logoFallback(this)">
+      <span class="wordmark"><b>FAU</b><small>Erlangen-Nürnberg</small></span>
+    </span>
+    <span class="wm-sep"></span>
+    <span class="logo">
+      <img src="kit-logo.png" alt="Karlsruher Institut für Technologie" onerror="logoFallback(this)">
+      <span class="wordmark"><b>KIT</b><small>Karlsruher Institut für Technologie</small></span>
+    </span>
+  </div>
+</header>
+
+<div class="titleband">
+  <h1>Kondensatormikrofon — interaktive Simulation</h1>
+  <div class="sub">Lagrange-Gleichungen 2. Art für elektromechanische Systeme ·
+    Verschiebungs-Ladungs-Formulierung · <b>Beispiel 7‑12</b>, J. H. Williams,
+    <i>Fundamentals of Applied Dynamics</i></div>
+</div>
+
+
+<section class="systemband">
+  <div class="figwrap">
+    <svg viewBox="-30 0 652 402" role="img"
+         aria-label="Schematische Darstellung eines Kondensatormikrofons nach Williams, Bild 7-26">
+      <defs>
+        <marker id="aN" markerWidth="9" markerHeight="7" refX="8.5" refY="3.5" orient="auto">
+          <path d="M0,0 L9,3.5 L0,7 z" fill="#040C77"/></marker>
+        <marker id="aM" markerWidth="9" markerHeight="7" refX="8.5" refY="3.5" orient="auto">
+          <path d="M0,0 L9,3.5 L0,7 z" fill="#8900B5"/></marker>
+        <marker id="aKe" markerWidth="8" markerHeight="7" refX="7.5" refY="3.5" orient="auto">
+          <path d="M0,0 L8,3.5 L0,7 z" fill="#161A22"/></marker>
+        <marker id="aKs" markerWidth="8" markerHeight="7" refX="0.5" refY="3.5" orient="auto">
+          <path d="M8,0 L0,3.5 L8,7 z" fill="#161A22"/></marker>
+      </defs>
+
+      <!-- Schallfeld -->
+      <g fill="none" stroke="#B7B2A6" stroke-width="2.4">
+        <path d="M490,92 Q464,200 490,308"/>
+        <path d="M525,86 Q499,200 525,314"/>
+        <path d="M560,80 Q534,200 560,320"/>
+        <path d="M595,74 Q569,200 595,326"/>
+      </g>
+      <path d="M566,186 L502,186 L502,171 L468,200 L502,229 L502,214 L566,214 z"
+            fill="#9A958A" opacity=".9"/>
+      <text x="534" y="360" text-anchor="middle" font-size="13"
+            font-family="Segoe UI, Arial" fill="#5F6270">Schallfeld</text>
+
+      <!-- Gehäuse -->
+      <g fill="#040C77">
+        <rect x="150" y="60"  width="16"  height="280"/>
+        <rect x="150" y="60"  width="118" height="16"/>
+        <rect x="150" y="324" width="118" height="16"/>
+      </g>
+      <line x1="200" y1="50" x2="200" y2="60" stroke="#161A22" stroke-width="1"/>
+      <text x="200" y="44" text-anchor="middle" font-size="13"
+            font-family="Segoe UI, Arial" fill="#161A22">Gehäuse</text>
+
+      <!-- feste Platte (perforiert) -->
+      <rect x="175" y="100" width="16" height="200" fill="#2A3390"/>
+      <g fill="#FAF7F0">
+        <rect x="179" y="114" width="8" height="8"/><rect x="179" y="140" width="8" height="8"/>
+        <rect x="179" y="166" width="8" height="8"/><rect x="179" y="192" width="8" height="8"/>
+        <rect x="179" y="218" width="8" height="8"/><rect x="179" y="244" width="8" height="8"/>
+        <rect x="179" y="270" width="8" height="8"/>
+      </g>
+
+      <!-- bewegliche Platte (Membran) -->
+      <rect x="235" y="112" width="9" height="176" fill="#B87A00"/>
+
+      <!-- Einspannung k -->
+      <g fill="none" stroke="#040C77" stroke-width="2.2">
+        <path d="M239,76 L239,82 L231,86 L247,92 L231,98 L247,104 L239,108 L239,112"/>
+        <path d="M239,324 L239,318 L231,314 L247,308 L231,302 L247,296 L239,292 L239,288"/>
+      </g>
+
+      <!-- Spaltmaß -->
+      <line x1="191" y1="207" x2="235" y2="207" stroke="#161A22" stroke-width="1"
+            marker-start="url(#aKs)" marker-end="url(#aKe)"/>
+      <text x="213" y="199" text-anchor="middle" font-size="12.5"
+            font-family="Palatino Linotype, Georgia, serif" font-style="italic"
+            fill="#161A22">d₀ + x</text>
+
+      <!-- Beschriftungen rechts -->
+      <line x1="288" y1="70" x2="247" y2="90" stroke="#161A22" stroke-width="1"/>
+      <text x="292" y="74" font-size="13" font-family="Segoe UI, Arial" fill="#161A22">Einspannung (k)</text>
+      <line x1="288" y1="116" x2="247" y2="124" stroke="#161A22" stroke-width="1"/>
+      <text x="292" y="120" font-size="13" font-family="Segoe UI, Arial" fill="#161A22">bewegliche Platte (m)</text>
+      <line x1="188" y1="312" x2="184" y2="302" stroke="#161A22" stroke-width="1"/>
+      <text x="190" y="320" text-anchor="middle" font-size="11.5"
+            font-family="Segoe UI, Arial" fill="#161A22"
+            stroke="#FAF7F0" stroke-width="3.5" paint-order="stroke">feste Platte</text>
+
+      <!-- x und F(t) -->
+      <line x1="248" y1="165" x2="298" y2="165" stroke="#040C77" stroke-width="2"
+            marker-end="url(#aN)"/>
+      <text x="304" y="170" font-size="15" font-family="Palatino Linotype, Georgia, serif"
+            font-style="italic" fill="#040C77">x</text>
+      <line x1="248" y1="240" x2="298" y2="240" stroke="#8900B5" stroke-width="2.4"
+            marker-end="url(#aM)"/>
+      <text x="304" y="245" font-size="15" font-family="Palatino Linotype, Georgia, serif"
+            font-style="italic" fill="#8900B5">F(t)</text>
+
+      <!-- Verstärker -->
+      <rect x="18" y="96" width="100" height="44" fill="none" stroke="#040C77" stroke-width="2"/>
+      <text x="68" y="123" text-anchor="middle" font-size="12.5"
+            font-family="Segoe UI, Arial" fill="#040C77">Verstärker (R)</text>
+
+      <!-- Leitungen -->
+      <g fill="none" stroke="#040C77" stroke-width="2">
+        <path d="M118,110 L118,88 L183,88 L183,100"/>
+        <path d="M38,140 L38,205"/>
+        <path d="M38,238 L38,340 L200,340"/>
+        <path d="M110,340 L110,356"/>
+      </g>
+      <!-- Batterie -->
+      <g stroke="#040C77" stroke-width="2.6">
+        <line x1="24" y1="207" x2="52" y2="207"/><line x1="31" y1="216" x2="45" y2="216"/>
+        <line x1="24" y1="225" x2="52" y2="225"/><line x1="31" y1="234" x2="45" y2="234"/>
+      </g>
+      <text x="12" y="225" text-anchor="end" font-size="15"
+            font-family="Palatino Linotype, Georgia, serif" font-style="italic" fill="#040C77">E₀</text>
+      <text x="58" y="210" font-size="12" font-family="Segoe UI, Arial" fill="#5F6270">+</text>
+      <text x="58" y="239" font-size="12" font-family="Segoe UI, Arial" fill="#5F6270">–</text>
+      <!-- Masse -->
+      <g stroke="#040C77" stroke-width="2">
+        <line x1="98" y1="356" x2="122" y2="356"/><line x1="103" y1="362" x2="117" y2="362"/>
+        <line x1="108" y1="368" x2="112" y2="368"/>
+      </g>
+      <!-- Stromumlauf -->
+      <path d="M96,232 A 27,27 0 1 1 69,259" fill="none" stroke="#040C77" stroke-width="1.8"
+            marker-end="url(#aN)"/>
+      <text x="96" y="264" text-anchor="middle" font-size="15"
+            font-family="Palatino Linotype, Georgia, serif" font-style="italic" fill="#040C77">q̇</text>
+    </svg>
+    <div class="figcap">Kondensatormikrofon — nachgezeichnet nach Williams, <i>Fundamentals of
+      Applied Dynamics</i>, Bild 7‑26 (Beispiel 7‑12).</div>
+  </div>
+
+  <div class="sysnote">
+    <h2>Das System</h2>
+    <p>Eine bewegliche Platte (die Membran) bildet zusammen mit einer festen, perforierten
+      Rückplatte einen Kondensator. Trifft Schall auf die Membran, ändert sich der Plattenabstand
+      — und damit die Kapazität. Die Batterie hält den Kondensator vorgespannt; der daraus
+      entstehende Strom durch den Verstärkerwiderstand <i>ist</i> das Mikrofonsignal.</p>
+    <div class="deflist">
+      <div><dt><i>m</i>, <i>k</i>, <i>c</i></dt><dd>Membranmasse, Einspannung, Dämpfung</dd></div>
+      <div><dt><i>C</i>(<i>x</i>)</dt><dd><i>C</i>₀<i>d</i>₀/(<i>d</i>₀+<i>x</i>) — die Kopplung
+        zwischen beiden Domänen</dd></div>
+      <div><dt><i>E</i>₀, <i>R</i></dt><dd>Vorspannung und Verstärkerwiderstand</dd></div>
+      <div><dt><i>F</i>(<i>t</i>)</dt><dd>Schalldruckkraft — positive Richtung wie <i>x</i></dd></div>
+      <div><dt><i>q</i>, <i>i</i> = <i>q̇</i></dt><dd>Ladung und Ausgangsstrom (das Signal)</dd></div>
+    </div>
+  </div>
+</section>
+
+<div class="bandhead">
+  <h2>Von der Lagrangefunktion zu den Bewegungsgleichungen</h2>
+  <span class="kicker">dieselben vier Schritte wie an der Tafel</span>
+  <label class="bandsw"><input type="checkbox" id="nocoup2">
+    <span>Kopplung aus: <i>C</i> = const</span></label>
+  <button class="toggle-btn" id="tgl">Herleitung ausblenden</button>
+</div>
+
+<section class="derivation" id="deriv">
+  <div class="steps">
+
+    <div class="step">
+      <h3>① Koordinaten</h3>
+      <div class="eq"><i>ξ</i> = <i>x</i> &nbsp;(Membranlage)</div>
+      <div class="eq"><i>q</i> &nbsp;(Ladung), &nbsp; <i>i</i> = <i>q̇</i></div>
+      <div class="cmt"><i>x</i> und <i>q</i> sind vollständig und unabhängig wählbar
+        → das System ist <b>holonom</b>. Zwei Koordinaten ⇒ zwei Gleichungen.</div>
+    </div>
+
+    <div class="step">
+      <h3>② Lagrangefunktion</h3>
+      <div class="eq">ℒ = <i>T</i>* − <i>V</i> + <i>W</i>*<sub>m</sub> − <i>W</i><sub>e</sub></div>
+      <div class="eq k-on">ℒ = ½<i>mẋ</i>² − ½<i>kx</i>² + 0 −
+        <span class="frac"><span><i>q</i>²</span><span>2<i>C</i>(<i>x</i>)</span></span></div>
+      <div class="eq k-off">ℒ = ½<i>mẋ</i>² − ½<i>kx</i>² + 0 −
+        <span class="frac"><span><i>q</i>²</span><span>2<i>C</i><sub>0</sub></span></span></div>
+      <div class="cmt k-on"><i>W</i>*<sub>m</sub> = 0 — keine Spule im System. <i>W</i><sub>e</sub> ist
+        direkt eine Funktion von <i>q</i>: <b>keine Koenergie nötig</b>.
+        <br><i>C</i>(<i>x</i>) = <i>C</i><sub>0</sub><i>d</i><sub>0</sub>/(<i>d</i><sub>0</sub>+<i>x</i>)</div>
+      <div class="cmt k-off"><i>W</i>*<sub>m</sub> = 0 — keine Spule im System. <i>W</i><sub>e</sub> ist
+        direkt eine Funktion von <i>q</i>: <b>keine Koenergie nötig</b>.
+        <br><b>ℒ enthält kein Produkt aus <i>x</i> und <i>q</i></b> — die beiden Koordinaten
+        stehen nur noch nebeneinander.</div>
+    </div>
+
+    <div class="step">
+      <h3>③ Virtuelle Arbeit</h3>
+      <div class="eq">δ𝒲<sup>nc</sup> = <i>Ξ</i> δ<i>x</i> + ℰ δ<i>q</i></div>
+      <div class="eq"><i>Ξ</i> = <i>F</i>(<i>t</i>) − <i>cẋ</i></div>
+      <div class="eq">ℰ = <i>E</i><sub>0</sub> − <i>Rq̇</i></div>
+      <div class="cmt">Dämpfer und Widerstand kommen über die virtuelle Arbeit herein —
+        <b>keine Rayleigh-Funktion</b>.</div>
+    </div>
+
+    <div class="step">
+      <h3>④ Lagrange-Gleichungen</h3>
+      <div class="eq">
+        <span class="frac"><span>d</span><span>d<i>t</i></span></span>
+        <span class="frac"><span>∂ℒ</span><span>∂<i>ẋ</i></span></span> −
+        <span class="frac"><span>∂ℒ</span><span>∂<i>x</i></span></span> = <i>Ξ</i></div>
+      <div class="eq">
+        <span class="frac"><span>d</span><span>d<i>t</i></span></span>
+        <span class="frac"><span>∂ℒ</span><span>∂<i>q̇</i></span></span> −
+        <span class="frac"><span>∂ℒ</span><span>∂<i>q</i></span></span> = ℰ</div>
+      <div class="cmt k-on">Elektrisch: ∂ℒ/∂<i>q̇</i> = 0 ⇒ kein Produktregel-Term.
+        Mechanisch: ∂ℒ/∂<i>x</i> liefert die elektrostatische Kraft.</div>
+      <div class="cmt k-off">Elektrisch: ∂ℒ/∂<i>q̇</i> = 0 ⇒ kein Produktregel-Term.
+        Mechanisch: ∂ℒ/∂<i>x</i> = −<i>kx</i> — <b>ohne <i>q</i></b>, denn ∂<i>W</i><sub>e</sub>/∂<i>x</i> = 0.
+        Die elektrostatische Kraft entfällt.</div>
+    </div>
+
+  </div>
+
+  <div class="results">
+    <div class="result">
+      <div class="tag k-on">Mechanische Gleichung</div>
+      <div class="tag k-off">Mechanische Gleichung · entkoppelt</div>
+      <div class="eq k-on"><i>mẍ</i> + <i>cẋ</i> + <i>kx</i> +
+        <span class="frac"><span><i>q</i>²</span><span>2<i>C</i><sub>0</sub><i>d</i><sub>0</sub></span></span>
+        = <i>F</i>(<i>t</i>)</div>
+      <div class="eq k-off"><i>mẍ</i> + <i>cẋ</i> + <i>kx</i> = <i>F</i>(<i>t</i>)</div>
+      <div class="note k-off">Der Term <i>q</i>²/(2<i>C</i><sub>0</sub><i>d</i><sub>0</sub>) entfällt —
+        ein gewöhnlicher gedämpfter Schwinger, ganz ohne Elektrik.</div>
+    </div>
+    <div class="result">
+      <div class="tag k-on">Elektrische Gleichung</div>
+      <div class="tag k-off">Elektrische Gleichung · entkoppelt</div>
+      <div class="eq k-on"><i>Rq̇</i> +
+        <span class="frac"><span><i>q</i>(<i>d</i><sub>0</sub>+<i>x</i>)</span><span><i>C</i><sub>0</sub><i>d</i><sub>0</sub></span></span>
+        = <i>E</i><sub>0</sub></div>
+      <div class="eq k-off"><i>Rq̇</i> +
+        <span class="frac"><span><i>q</i></span><span><i>C</i><sub>0</sub></span></span>
+        = <i>E</i><sub>0</sub></div>
+      <div class="note k-off"><i>x</i> kommt nicht mehr vor — ein reiner <i>RC</i>-Kreis.
+        Mit <i>q</i>(0) = <i>E</i><sub>0</sub><i>C</i><sub>0</sub> ist er bereits im Endzustand:
+        <i>q̇</i> ≡ 0.</div>
+    </div>
+  </div>
+
+  <div class="gcase"><b>Grenzfall d<i>C</i>/d<i>x</i> = 0.</b> Die Platten stehen fest,
+    <i>C</i> = <i>C</i><sub>0</sub> = const. Dieselben vier Schritte — nur hängt
+    <i>W</i><sub>e</sub> jetzt nicht mehr von <i>x</i> ab. Die Gleichungen oben sind
+    entsprechend hergeleitet.</div>
+
+  <div class="keynote k-off"><b>Beide Domänen sind entkoppelt.</b> Mit <i>C</i> = const verschwindet
+    d<i>C</i>/d<i>x</i> — und damit der einzige Term, der die beiden Gleichungen verbunden hat.
+    Links steht ein gedämpfter Schwinger, rechts ein <i>RC</i>-Kreis; keine der beiden Gleichungen
+    weiß noch von der anderen. Die Membran schwingt weiter, die Ladung bleibt auf
+    <i>q</i><sub>0</sub> = <i>E</i><sub>0</sub><i>C</i><sub>0</sub> stehen: kein Signal. Die
+    Wandlung steckt also nicht in der Kapazität selbst, sondern allein in ihrer
+    <i>Ortsabhängigkeit</i>.</div>
+
+  <div class="keynote k-on"><b>Zwei Beobachtungen.</b> In der elektrischen Gleichung koppelt <i>x</i>
+    rein <i>algebraisch</i> — es gibt keinen <i>ẋ</i>-Term, also keine Bewegungsinduktion, wie sie
+    ein induktiver Wandler hätte. Und für diese spezielle Kapazitätsfunktion kürzt sich die
+    <i>x</i>-Abhängigkeit der elektrostatischen Kraft exakt heraus: übrig bleibt der konstante
+    Term <i>q</i>²/(2<i>C</i><sub>0</sub><i>d</i><sub>0</sub>). Genau diese beiden Gleichungen
+    werden unten numerisch integriert (RK4).</div>
+</section>
+
+<div class="lab">
+  <div class="panel">
+    <h2>Parameter</h2>
+
+    <div class="ctrl">
+      <label><span>Schalldruck-Amplitude <i>F</i>₀</span><span class="val" id="vF">150 µN</span></label>
+      <input type="range" id="F0" min="0" max="500" step="10" value="150">
+      <div class="hint">Treibt die Membran — die eigentliche Signalquelle.</div>
+    </div>
+    <div class="ctrl">
+      <label><span>Tonfrequenz <i>f</i></span><span class="val" id="vf">300 Hz</span></label>
+      <input type="range" id="f" min="50" max="1000" step="10" value="300">
+      <div class="hint">Testton <i>F</i>(<i>t</i>) = <i>F</i>₀·sin(2π<i>ft</i>).</div>
+    </div>
+    <div class="ctrl">
+      <label><span>Vorspannung <i>E</i>₀</span><span class="val" id="vE">9.0 V</span></label>
+      <input type="range" id="E0" min="1" max="24" step="0.5" value="9">
+      <div class="hint">Lädt den Kondensator vor — ohne <i>E</i>₀ kein Signal.</div>
+    </div>
+    <div class="ctrl">
+      <label><span>Verstärkerwiderstand <i>R</i></span><span class="val" id="vR">10 MΩ</span></label>
+      <input type="range" id="R" min="60" max="85" step="1" value="70">
+      <div class="hint">Logarithmisch, 1 MΩ … 316 MΩ. Grenzfrequenz
+        <i>f</i><sub>c</sub> = 1/(2π<i>RC</i>₀) = <b id="fcVal">318 Hz</b> —
+        weit <i>über</i> der Tonfrequenz folgt die Ladung der Membran (Strombetrieb, <i>i</i> ∝ <i>ẋ</i>),
+        weit <i>darunter</i> bleibt die Ladung nahezu konstant: der Betriebsfall des realen
+        Kondensatormikrofons.</div>
+    </div>
+    <div class="ctrl">
+      <label><span>Federsteifigkeit <i>k</i></span><span class="val" id="vK">3.0 N/m</span></label>
+      <input type="range" id="k" min="0.5" max="20" step="0.5" value="3">
+      <div class="hint">Mit <i>m</i> zusammen die Resonanzfrequenz der Membran.</div>
+    </div>
+    <div class="ctrl">
+      <label><span>Membranmasse <i>m</i></span><span class="val" id="vM">0.20 mg</span></label>
+      <input type="range" id="m" min="0.05" max="1" step="0.05" value="0.2">
+      <div class="hint">Träge Masse der Membran.</div>
+    </div>
+
+    <div class="switch">
+      <label><input type="checkbox" id="nocoup">
+        <span>Kopplung aus: <i>C</i> = const</span></label>
+      <div class="hint">Setzt die Ortsabhängigkeit von <i>C</i> in beiden Gleichungen auf null.
+        Die Membran schwingt weiter — das elektrische Signal verschwindet vollständig.</div>
+    </div>
+
+    <button class="reset" id="reset">Zurücksetzen</button>
+
+    <div class="status" id="status"></div>
+  </div>
+
+  <div style="flex:1;min-width:520px">
+    <div class="legend">
+      <span><i class="swatch" style="background:#8900B5"></i><span>Schalldruck <i>F</i>(<i>t</i>)</span></span>
+      <span><i class="swatch" style="background:#B87A00"></i><span>Membranauslenkung <i>x</i>(<i>t</i>)</span></span>
+      <span><i class="swatch" style="background:#040C77"></i><span>Ausgangsstrom <i>i</i> = <i>q̇</i></span></span>
+      <span><i class="swatch" style="background:#9A958A"></i><span>ohne Kopplung (exakt 0)</span></span>
+    </div>
+    <canvas id="cv" width="1040" height="660"></canvas>
+
+    <div class="axisbar">
+      <span class="axlabel">Achsen</span>
+      <label class="seg"><input type="radio" name="axmode" id="axfix" checked> fest</label>
+      <label class="seg"><input type="radio" name="axmode" id="axauto"> automatisch</label>
+      <span class="axgrp"><span class="axkey">y</span>
+        <span class="axfield"><i>F</i> ±<input type="number" id="spanF" value="200" min="1" step="10"> µN</span>
+        <span class="axfield"><i>x</i> ±<input type="number" id="spanX" value="100" min="1" step="10"> µm</span>
+        <span class="axfield"><i>i</i> ±<input type="number" id="spanI" value="200" min="1" step="10"> nA</span>
+      </span>
+      <span class="axgrp"><span class="axkey">x</span>
+        <span class="axfield">Zeitfenster <input type="number" id="spanTime" value="20" min="1" max="100" step="1"> ms</span>
+      </span>
+      <button class="axbtn" id="axfit">An aktuelle Kurven anpassen</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Modell und Gleichungen nach J. H. Williams Jr., <i>Fundamentals of Applied Dynamics</i>,
+  John Wiley &amp; Sons 1996, §7‑5 / §7‑6.1, Beispiel 7‑12 (Condenser Microphone).
+  Numerik: klassisches Runge-Kutta-Verfahren 4. Ordnung, im Browser gerechnet.
+  Parameter sind für die Demonstration gewählt, nicht als Datenblatt eines realen Mikrofons.
+</footer>
+
+<script>
+function logoFallback(img){
+  img.style.display = 'none';
+  img.nextElementSibling.style.display = 'flex';
+}
+
+// ---------- Modell ----------
+// Williams, Beispiel 7-12: C(x) = C0 d0/(d0+x); x = Auslenkung der Membran aus der Ruhelage.
+// Eingesetzt in die Lagrange-Gleichungen kuerzt sich die x-Abhaengigkeit der elektrostatischen
+// Kraft exakt heraus -> konstanter Term q^2/(2 C0 d0). Die elektrische Gleichung behaelt die
+// x-Abhaengigkeit algebraisch, ohne jeden xdot-Term (keine Bewegungsinduktion).
+const d0 = 5e-4, C0 = 50e-12, c = 2e-4;
+const STEPS = 50000;           // Schritte je Lauf; dt folgt aus dem Zeitfenster
+                               // (Ergebnis ab 25000 Schritten auf 5 Stellen identisch)
+let WIN = 0.02;                // Zeitfenster in Sekunden (Achsenleiste)
+let P = {F0:150e-6, f:300, E0:9, R:10e6, k:3, m:0.2e-6};
+
+function makeDeriv(coup){
+  return function(y, t){
+    const x = y[0], v = y[1], q = y[2];
+    const F = P.F0 * Math.sin(2*Math.PI*P.f*t);
+    const Felec = coup ? (q*q)/(2*C0*d0) : 0;
+    const dv = (F - c*v - P.k*x - Felec) / P.m;
+    const dq = coup ? (P.E0 - q*(d0+x)/(C0*d0)) / P.R
+                    : (P.E0 - q/C0) / P.R;
+    return [v, dv, dq];
+  };
+}
+
+function simulate(coup){
+  const f = makeDeriv(coup);
+  const dt = WIN/STEPS, every = Math.max(1, Math.round(STEPS/1000));
+  let y = [0, 0, P.E0*C0], t = 0;
+  const out = {t:[], F:[], x:[], i:[]};
+  for (let n = 0; n <= STEPS; n++){
+    if (n % every === 0){
+      const d = f(y, t);
+      out.t.push(t*1e3);
+      out.F.push(P.F0 * Math.sin(2*Math.PI*P.f*t) * 1e6);   // µN
+      out.x.push(y[0]*1e6);                                  // µm
+      out.i.push(d[2]*1e9);                                  // nA
+    }
+    const k1 = f(y, t);
+    const k2 = f([y[0]+dt/2*k1[0], y[1]+dt/2*k1[1], y[2]+dt/2*k1[2]], t+dt/2);
+    const k3 = f([y[0]+dt/2*k2[0], y[1]+dt/2*k2[1], y[2]+dt/2*k2[2]], t+dt/2);
+    const k4 = f([y[0]+dt*k3[0],   y[1]+dt*k3[1],   y[2]+dt*k3[2]],   t+dt);
+    y = [0,1,2].map(j => y[j] + dt/6*(k1[j] + 2*k2[j] + 2*k3[j] + k4[j]));
+    t += dt;
+  }
+  return out;
+}
+
+// ---------- Zeichnen ----------
+let autoSpan = {F:200, x:100, i:200};
+let autoWinMs = 20;
+const cv = document.getElementById('cv'), g = cv.getContext('2d');
+const W = cv.width, H = cv.height, ML = 92, MR = 24, MT = 22, GAP = 40;
+const PH = (H - MT - 2*GAP - 46) / 3;
+const SERIF = '13px "Palatino Linotype", Georgia, serif';
+const TITLE_X = 30;
+let LBL_FONT = SERIF, LBL_SCALE = 1, LBL_SIZE = 13;
+
+// Achsentitel stehen ZWEIZEILIG: Name in der linken, Symbol + Einheit in der rechten Spalte.
+// Dadurch ist die laengste Zeile nur noch etwa halb so lang wie der fruehere einzeilige Titel
+// und kann nicht mehr in das Nachbarpanel hineinragen. Zusaetzlich wird der Schriftgrad an die
+// Panelhoehe angepasst (Schriftmetriken unterscheiden sich je nach System), und falls das
+// nicht reicht, wird horizontal gestaucht.
+const unitText = (sym, unit) => sym + '  [' + unit + ']';
+
+function fitLabelFont(lines){
+  const avail = PH - 10;
+  let size = 13, widest = 0;
+  for (;;){
+    g.font = size + 'px "Palatino Linotype", Georgia, serif';
+    widest = Math.max(...lines.map(t => g.measureText(t).width));
+    if (widest <= avail || size <= 10) break;
+    size -= 0.5;
+  }
+  return {font: g.font, size: size, scale: widest > avail ? avail / widest : 1};
+}
+
+function panel(y0, series, ref, ymax, name, sym, unit, color){
+  const w = W - ML - MR, ymin = -ymax;
+  // grid + axis
+  g.strokeStyle = '#161A22'; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(ML, y0); g.lineTo(ML, y0+PH); g.lineTo(ML+w, y0+PH); g.stroke();
+  g.font = '11.5px "Segoe UI", Arial'; g.textAlign = 'right';
+  const dec = ymax < 2 ? 2 : (ymax < 20 ? 1 : 0);
+  for (let s = 0; s <= 4; s++){
+    const yy = y0 + PH - s/4*PH, vv = ymin + s/4*(ymax-ymin);
+    g.strokeStyle = '#EFEADE'; g.lineWidth = 1;
+    g.beginPath(); g.moveTo(ML, yy); g.lineTo(ML+w, yy); g.stroke();
+    g.fillStyle = '#5F6270';
+    g.fillText(vv.toFixed(dec), ML-8, yy+4);
+  }
+  // zero line
+  const yz = y0 + PH/2;
+  g.strokeStyle = '#C9C3B4'; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(ML, yz); g.lineTo(ML+w, yz); g.stroke();
+  // y-Titel, zweizeilig: links der Name, rechts (achsennah) Symbol und Einheit
+  g.save(); g.translate(TITLE_X, y0 + PH/2); g.rotate(-Math.PI/2);
+  if (LBL_SCALE !== 1) g.scale(LBL_SCALE, 1);
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillStyle = '#161A22'; g.font = LBL_FONT;
+  const lh = LBL_SIZE * 1.3;
+  g.fillText(name, 0, -lh/2);
+  g.fillText(unitText(sym, unit), 0, lh/2);
+  g.restore();
+  // Kurven werden auf das Panel beschnitten, damit feste Achsen nichts ueberzeichnen
+  g.save();
+  g.beginPath(); g.rect(ML, y0, w, PH); g.clip();
+  if (ref){
+    g.strokeStyle = '#9A958A'; g.lineWidth = 1.6; g.setLineDash([6,4]); g.beginPath();
+    ref.forEach((vv, n) => {
+      const px = ML + (n/(ref.length-1))*w, py = y0 + PH - (vv-ymin)/(ymax-ymin)*PH;
+      n ? g.lineTo(px, py) : g.moveTo(px, py);
+    });
+    g.stroke(); g.setLineDash([]);
+  }
+  g.strokeStyle = color; g.lineWidth = 2.2; g.beginPath();
+  series.forEach((vv, n) => {
+    const px = ML + (n/(series.length-1))*w, py = y0 + PH - (vv-ymin)/(ymax-ymin)*PH;
+    n ? g.lineTo(px, py) : g.moveTo(px, py);
+  });
+  g.stroke();
+  g.restore();
+  // Hinweis, wenn die Kurve den festen Achsenbereich verlaesst
+  if (Math.max(...series.map(Math.abs)) > ymax*1.002){
+    g.fillStyle = '#B87A00'; g.font = 'italic 11.5px "Segoe UI", Arial'; g.textAlign = 'right';
+    g.fillText('Kurve verlässt den Achsenbereich', ML + w - 8, y0 + 14);
+  }
+  return w;
+}
+
+function draw(){
+  const coupOn = !document.getElementById('nocoup').checked;
+  // Herleitung mitschalten: body.nocoup blendet die C(x)-Zeilen aus und die C = const-Zeilen ein.
+  document.body.classList.toggle('nocoup', !coupOn);
+  document.getElementById('nocoup2').checked = !coupOn;
+  const fixedAxT = document.getElementById('axfix').checked;
+  // x-Achse: festes Zeitfenster (Standard) oder automatisch 6 Perioden des Testtons
+  const autoWin = Math.min(0.1, Math.max(0.002, 6/P.f));
+  const rawWin  = parseFloat(document.getElementById('spanTime').value)/1000;
+  WIN = fixedAxT ? ((isFinite(rawWin) && rawWin > 0) ? rawWin : autoWin) : autoWin;
+  autoWinMs = +(autoWin*1000).toFixed(1);
+  const out   = simulate(coupOn);
+  const other = simulate(!coupOn);
+  // Achsen immer aus dem GEKOPPELTEN Lauf skalieren: so bleibt der Maßstab beim Umschalten
+  // stehen und der Zusammenbruch des Signals ist wirklich sichtbar.
+  const coupled   = coupOn ? out : other;
+  const uncoupled = coupOn ? other : out;
+  g.clearRect(0, 0, W, H);
+
+  const nice = v => {
+    if (!(v > 0)) return 1;
+    const e = Math.pow(10, Math.floor(Math.log10(v))), m = v / e;
+    return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * e;
+  };
+  const amp = (a, floor) => nice(Math.max(floor, ...a.map(Math.abs)) * 1.15);
+  const y1 = MT, y2 = MT + PH + GAP, y3 = MT + 2*(PH + GAP);
+
+  // Achsen: fest (Standard) oder automatisch aus dem gekoppelten Lauf
+  autoSpan = {F: amp(coupled.F, 1), x: amp(coupled.x, 1), i: amp(coupled.i, 1)};
+  const fixedAx = document.getElementById('axfix').checked;
+  const spanOf = key => {
+    if (!fixedAx) return autoSpan[key];
+    const v = parseFloat(document.getElementById('span' + key.toUpperCase()).value);
+    return (isFinite(v) && v > 0) ? v : autoSpan[key];
+  };
+
+  const specs = [
+    {y:y1, data:out.F, ref:null, span:spanOf('F'),
+     name:'Schalldruck',       sym:'F(t)',  unit:'µN', color:'#8900B5'},
+    {y:y2, data:out.x, ref:null, span:spanOf('x'),
+     name:'Membranauslenkung', sym:'x',     unit:'µm', color:'#B87A00'},
+    {y:y3, data:out.i, ref:coupOn ? uncoupled.i : null, span:spanOf('i'),
+     name:'Ausgangsstrom',     sym:'i = q̇', unit:'nA', color:'#040C77'}
+  ];
+  const fit = fitLabelFont(
+    specs.reduce((a, sp) => a.concat([sp.name, unitText(sp.sym, sp.unit)]), []));
+  LBL_FONT = fit.font; LBL_SIZE = fit.size; LBL_SCALE = fit.scale;
+  let w;
+  specs.forEach(sp => {
+    w = panel(sp.y, sp.data, sp.ref, sp.span, sp.name, sp.sym, sp.unit, sp.color);
+  });
+
+  // Zeitachse
+  g.fillStyle = '#5F6270'; g.font = '11.5px "Segoe UI", Arial'; g.textAlign = 'center';
+  for (let s = 0; s <= 5; s++){
+    const tt = s*WIN*1e3/5, px = ML + s/5*w;
+    g.fillText(tt.toFixed(1), px, y3 + PH + 17);
+  }
+  g.fillStyle = '#161A22'; g.font = SERIF;
+  g.fillText('Zeit   [ms]', ML + w/2, y3 + PH + 38);
+
+  // Status
+  const st = document.getElementById('status');
+  const iPk = Math.max(...out.i.map(Math.abs)), xPk = Math.max(...out.x.map(Math.abs));
+  if (!coupOn){
+    st.innerHTML = '<b>Kopplung deaktiviert (C = const).</b><br>' +
+      'Die Membran schwingt weiter — der Schalldruck treibt sie unabhängig davon. Aber die Ladung ' +
+      'bleibt exakt bei q₀ = E₀C₀: kein d<i>C</i>/d<i>x</i>, kein Signal.';
+  } else {
+    st.innerHTML = '<b>Signal vorhanden.</b><br>' +
+      'Membran schwingt mit ±' + xPk.toFixed(1) + ' µm, Ausgangsstrom mit ±' + iPk.toFixed(1) +
+      ' nA — erzeugt einzig durch <i>C</i>(<i>x</i>(<i>t</i>)).';
+  }
+}
+
+// ---------- Bedienung ----------
+// R laeuft logarithmisch: Reglerwert v entspricht R = 10^(v/10) Ohm (60 -> 1 MOhm, 85 -> 316 MOhm)
+const megohm = v => Math.pow(10, v/10) / 1e6;
+const fmt = {F0:v=>v.toFixed(0)+' µN', f:v=>v.toFixed(0)+' Hz', E0:v=>v.toFixed(1)+' V',
+             R:v=>{const M = megohm(v); return (M < 10 ? M.toFixed(1) : M.toFixed(0)) + ' MΩ';},
+             k:v=>v.toFixed(1)+' N/m', m:v=>v.toFixed(2)+' mg'};
+const ids  = {F0:'vF', f:'vf', E0:'vE', R:'vR', k:'vK', m:'vM'};
+const toSI = {F0:v=>v*1e-6, f:v=>v, E0:v=>v, R:v=>Math.pow(10, v/10), k:v=>v, m:v=>v*1e-6};
+
+function sync(){
+  for (const key in ids){
+    const raw = parseFloat(document.getElementById(key).value);
+    P[key] = toSI[key](raw);
+    document.getElementById(ids[key]).textContent = fmt[key](raw);
+  }
+  const fc = 1 / (2*Math.PI*P.R*C0);
+  document.getElementById('fcVal').textContent =
+      fc >= 1000 ? (fc/1000).toFixed(1) + ' kHz' : fc.toFixed(0) + ' Hz';
+  draw();
+}
+for (const key in ids) document.getElementById(key).addEventListener('input', sync);
+document.getElementById('nocoup').addEventListener('change', draw);
+// Spiegel-Schalter im Bandkopf: schreibt auf die Checkbox im Labor zurueck, damit es
+// genau eine Quelle der Wahrheit gibt.
+document.getElementById('nocoup2').addEventListener('change', function(){
+  document.getElementById('nocoup').checked = this.checked;
+  draw();
+});
+
+const DEF = {F0:150, f:300, E0:9, R:70, k:3, m:0.2};
+document.getElementById('reset').onclick = () => {
+  for (const key in DEF) document.getElementById(key).value = DEF[key];
+  document.getElementById('nocoup').checked = false;
+  sync();
+};
+
+// --- Achsensteuerung ---
+const spanIds = ['spanF','spanX','spanI','spanTime'];
+function syncAxisUI(){
+  const fixedAx = document.getElementById('axfix').checked;
+  spanIds.forEach(id => document.getElementById(id).disabled = !fixedAx);
+}
+['axfix','axauto'].forEach(id =>
+  document.getElementById(id).addEventListener('change', () => { syncAxisUI(); draw(); }));
+spanIds.forEach(id => document.getElementById(id).addEventListener('input', draw));
+document.getElementById('axfit').onclick = () => {
+  document.getElementById('axfix').checked = true;
+  syncAxisUI();
+  document.getElementById('spanF').value = autoSpan.F;
+  document.getElementById('spanX').value = autoSpan.x;
+  document.getElementById('spanI').value = autoSpan.i;
+  document.getElementById('spanTime').value = autoWinMs;
+  draw();
+};
+syncAxisUI();
+
+const tgl = document.getElementById('tgl'), deriv = document.getElementById('deriv');
+tgl.onclick = () => {
+  const hidden = deriv.style.display === 'none';
+  deriv.style.display = hidden ? '' : 'none';
+  tgl.textContent = hidden ? 'Herleitung ausblenden' : 'Herleitung einblenden';
+};
+
+sync();
+</script>
+</body>
+</html>
