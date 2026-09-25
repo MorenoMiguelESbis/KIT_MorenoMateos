@@ -246,10 +246,14 @@
       <!-- bewegliche Platte (Membran) -->
       <rect x="235" y="112" width="9" height="176" fill="#B87A00"/>
 
-      <!-- Einspannung k -->
+      <!-- Einspannung k: Feder waagrecht, senkrecht zur beweglichen Platte -->
+      <g fill="#040C77">
+        <rect x="262" y="76"  width="6" height="54"/>
+        <rect x="262" y="270" width="6" height="54"/>
+      </g>
       <g fill="none" stroke="#040C77" stroke-width="2.2">
-        <path d="M239,76 L239,82 L231,86 L247,92 L231,98 L247,104 L239,108 L239,112"/>
-        <path d="M239,324 L239,318 L231,314 L247,308 L231,302 L247,296 L239,292 L239,288"/>
+        <path d="M244,130 L249,123 L255,137 L260,123 L262,130"/>
+        <path d="M244,270 L249,277 L255,263 L260,277 L262,270"/>
       </g>
 
       <!-- Spaltmaß -->
@@ -260,7 +264,7 @@
             fill="#161A22">d₀ + x</text>
 
       <!-- Beschriftungen rechts -->
-      <line x1="288" y1="70" x2="247" y2="90" stroke="#161A22" stroke-width="1"/>
+      <line x1="288" y1="70" x2="264" y2="95" stroke="#161A22" stroke-width="1"/>
       <text x="292" y="74" font-size="13" font-family="Segoe UI, Arial" fill="#161A22">Einspannung (k)</text>
       <line x1="288" y1="116" x2="247" y2="124" stroke="#161A22" stroke-width="1"/>
       <text x="292" y="120" font-size="13" font-family="Segoe UI, Arial" fill="#161A22">bewegliche Platte (m)</text>
